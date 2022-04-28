@@ -1,14 +1,28 @@
 const taskInput = document.querySelector(".task-input input"),
-taskBox = document.querySelector(".task-box");
+    filters = document.querySelectorAll(".filters span"),
+    taskBox = document.querySelector(".task-box");
+let editId;
+let isEditedTask = false,
+    clearAll = document.querySelector(".clear-all-btn");
+
 let itemsList = JSON.parse(localStorage.getItem("item-list"));
 
+filters.forEach(btn => {
+    btn.addEventListener("click", () => {
+        document.querySelector("span.active").classList.remove("active");
+        btn.classList.add("active");
+        showTodo(btn.id);
+    });
+});
 
-function showTodo() {
+
+function showTodo(filter) {
     let li = "";
     if (itemsList) {
         itemsList.forEach((item, id) => {
             let isCompleted = item.status == "completed" ? "checked" : "";
-    li += `<li class="task">
+            if (filter == item.status || filter == "all") {
+                li += `<li class="task">
         <label for="${id}">
             <input onclick = "updateStatus(this)" type="checkbox" id="${id}" ${isCompleted}>
             <p class="${isCompleted}">${item.name}</p>
@@ -21,11 +35,12 @@ function showTodo() {
             </ul>
         </div>
     </li>`;
-    });
-}
+            }
+        });
+    }
     taskBox.innerHTML = li || `<span>You don't have any items here</span>`;
 }
-showTodo();
+showTodo("all");
 
 function showMenu(selectedTask) {
     let taskMenu = selectedTask.parentElement.lastElementChild;
@@ -37,15 +52,26 @@ function showMenu(selectedTask) {
     });
 }
 
+function editTask(taskId, taskName) {
+    editId = taskId;
+    isEditedTask = true;
+    taskInput.value = taskName;
+}
+
 function deleteTask(deleteId) {
     itemsList.splice(deleteId, 1);
     localStorage.setItem("item-list", JSON.stringify(itemsList));
-    showTodo();
+    showTodo("all");
 }
+
+clearAll.addEventListener("click", () => {
+    itemsList.splice(0, itemsList.length);
+    localStorage.setItem("item-list", JSON.stringify(itemsList));
+    showTodo("all");
+});
 
 function updateStatus(selectedTask) {
     let taskName = selectedTask.parentElement.lastElementChild;
-
     if (selectedTask.checked) {
         taskName.classList.add("checked");
         itemsList[selectedTask.id].status = "completed";
@@ -60,14 +86,18 @@ function updateStatus(selectedTask) {
 taskInput.addEventListener("keyup", e => {
     let userTask = taskInput.value.trim();
     if (e.key == "Enter" && userTask) {
-
-        if (!itemsList) {
-            itemsList = [];
+        if (!isEditedTask) {
+            if (!itemsList) {
+                itemsList = [];
+            }
+            let taskInfo = { name: userTask, status: "pending" };
+            itemsList.push(taskInfo);
+        } else {
+            isEditedTask = false;
+            itemsList[editId].name = userTask;
         }
         taskInput.value = "";
-        let taskInfo = { name: userTask, status: "pending" };
-        itemsList.push(taskInfo);
         localStorage.setItem("item-list", JSON.stringify(itemsList));
-        showTodo();
+        showTodo("all");
     }
 });
