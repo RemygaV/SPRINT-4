@@ -27,6 +27,22 @@ function showTodo() {
 }
 showTodo();
 
+function showMenu(selectedTask) {
+    let taskMenu = selectedTask.parentElement.lastElementChild;
+    taskMenu.classList.add("show");
+    document.addEventListener("click", e => {
+        if (e.target.tagName != "I" || e.target != selectedTask) {
+            taskMenu.classList.remove("show");
+        }
+    });
+}
+
+function deleteTask(deleteId) {
+    itemsList.splice(deleteId, 1);
+    localStorage.setItem("item-list", JSON.stringify(itemsList));
+    showTodo();
+}
+
 function updateStatus(selectedTask) {
     let taskName = selectedTask.parentElement.lastElementChild;
 
